@@ -7,12 +7,14 @@ You must test your agent's strength against a set of agents with known
 relative strength using tournament.py and include the results in your report.
 """
 import random
-
+import math
 
 class Timeout(Exception):
     """Subclass base exception for code clarity."""
     pass
 
+def distance(p0, p1):
+    return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
 def custom_score(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -45,7 +47,19 @@ def custom_score(game, player):
     if game.is_winner(player):
         return float("inf")
 
-    return float(len(game.get_legal_moves(player)))    
+    available_spaces = game.get_blank_spaces()   
+    available_q1 = len([x for x in available_spaces if x in player.q1])
+    available_q2 = len([x for x in available_spaces if x in player.q2])
+    available_q3 = len([x for x in available_spaces if x in player.q3])
+    available_q4 = len([x for x in available_spaces if x in player.q4])
+    
+    better_place = max([(available_q1, player.b1), (available_q2, player.b2), (available_q3, player.b3), (available_q4, player.b4)])
+    
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves - opp_moves) + \
+        distance(better_place[1], game.get_player_location(game.get_opponent(player))) - \
+        distance(better_place[1], game.get_player_location(player))
 
 class CustomPlayer:
     """Game-playing agent that chooses a move using your evaluation function
@@ -85,6 +99,33 @@ class CustomPlayer:
         self.method = method
         self.time_left = None
         self.TIMER_THRESHOLD = timeout
+        self.q1 = None
+        self.q2 = None
+        self.q3 = None
+        self.q4 = None
+        self.b1 = None
+        self.b2 = None
+        self.b3 = None
+        self.b4 = None
+
+    def create_quarter(self, width, height):
+        split_width = int(width/2)
+        if( (width % 2) == 1): split_width = int(width/2) +1
+        split_height = int(height/2)
+        if( (height % 2) == 1): split_height = int(height/2) +1
+        q1 = [(i,j) for i in range(0, split_width) for j in range(0, split_height)]
+        q3 = [(i,j) for i in range(int(width/2), width) for j in range(0, split_height)]
+        q2 = [(i,j) for i in range(0, split_width) for j in range(int(height/2), height)]
+        q4 = [(i,j) for i in range(int(width/2), width) for j in range(int(height/2), height)]
+        b1 = tuple([sum(x) for x in zip(*q1)])
+        b2 = tuple([sum(x) for x in zip(*q2)])
+        b3 = tuple([sum(x) for x in zip(*q3)])
+        b4 = tuple([sum(x) for x in zip(*q4)])
+        b1 = tuple([x/len(q1) for x in b1])
+        b2 = tuple([x/len(q2) for x in b2])
+        b3 = tuple([x/len(q3) for x in b3])
+        b4 = tuple([x/len(q4) for x in b4])
+        return q1, q2, q3, q4, b1, b2, b3, b4
 
     def get_move(self, game, legal_moves, time_left):
         """Search for the best move from the available legal moves and return a
@@ -129,6 +170,11 @@ class CustomPlayer:
         # Perform any required initializations, including selecting an initial
         # move from the game board (i.e., an opening book), or returning
         # immediately if there are no legal moves
+        
+        # create positions for 4 quarter
+        if(self.q1 == None):
+            self.q1, self.q2, self.q3, self.q4, self.b1, self.b2, self.b3, self.b4 = \
+                self.create_quarter(game.width, game.height)
 
         if(len(legal_moves) == (game.width * game.height)):
             # opening move of player 1: take the center of the board
