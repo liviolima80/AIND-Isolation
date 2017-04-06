@@ -9,6 +9,7 @@ relative strength using tournament.py and include the results in your report.
 import random
 import math
 
+
 class Timeout(Exception):
     """Subclass base exception for code clarity."""
     pass
@@ -17,6 +18,161 @@ def distance(p0, p1):
     return math.sqrt((p0[0] - p1[0])**2 + (p0[1] - p1[1])**2)
 
 def custom_score(game, player):
+    """The "Improved" evaluation function discussed in lecture that outputs a
+    score equal to the difference in the number of moves available to the
+    two players.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+
+    if(hasattr(player, 'q1')):
+        available_spaces = game.get_blank_spaces()   
+        available_q1 = len([x for x in available_spaces if x in player.q1])
+        available_q2 = len([x for x in available_spaces if x in player.q2])
+        available_q3 = len([x for x in available_spaces if x in player.q3])
+        available_q4 = len([x for x in available_spaces if x in player.q4])
+        
+        better_place = max([(available_q1, player.b1), (available_q2, player.b2), (available_q3, player.b3), (available_q4, player.b4)])
+        
+        return float(own_moves - opp_moves) + \
+                distance(better_place[1], game.get_player_location(game.get_opponent(player))) - \
+                distance(better_place[1], game.get_player_location(player))
+    else:
+        return float(own_moves - opp_moves)
+				 
+def custom_score_center(game, player):
+    """The "Improved" evaluation function discussed in lecture that outputs a
+    score equal to the difference in the number of moves available to the
+    two players.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    d = distance(game.get_player_location(player), (float(game.height)/2, float(game.width)/2))
+    d2 = distance(game.get_player_location(game.get_opponent(player)), (float(game.height)/2, float(game.width)/2))
+
+    return float(len(game.get_legal_moves(player)) - \
+                 len(game.get_legal_moves(game.get_opponent(player)))) - d + d2
+	
+def custom_score_distance(game, player):
+    """The "Improved" evaluation function discussed in lecture that outputs a
+    score equal to the difference in the number of moves available to the
+    two players.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    d = distance(game.get_player_location(player), game.get_player_location(game.get_opponent(player)))
+    return d + float(len(game.get_legal_moves(player)) - len(game.get_legal_moves(game.get_opponent(player))))
+	
+def custom_score_h1_full_distance(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+
+    # TODO: finish this function!
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    available_spaces = game.get_blank_spaces()   
+    available_q1 = len([x for x in available_spaces if x in player.q1])
+    available_q2 = len([x for x in available_spaces if x in player.q2])
+    available_q3 = len([x for x in available_spaces if x in player.q3])
+    available_q4 = len([x for x in available_spaces if x in player.q4])
+    
+    better_place = max([(available_q1, player.b1), (available_q2, player.b2), (available_q3, player.b3), (available_q4, player.b4)])
+    
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    """return float(own_moves - opp_moves) + \
+        distance(better_place[1], game.get_player_location(game.get_opponent(player))) - \
+        distance(better_place[1], game.get_player_location(player))"""
+    return distance(better_place[1], game.get_player_location(game.get_opponent(player))) - \
+        distance(better_place[1], game.get_player_location(player))
+        
+def custom_score_h1_full_mixed(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
 
@@ -58,8 +214,103 @@ def custom_score(game, player):
     own_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
     return float(own_moves - opp_moves) + \
-        distance(better_place[1], game.get_player_location(game.get_opponent(player))) - \
-        distance(better_place[1], game.get_player_location(player))
+            distance(better_place[1], game.get_player_location(game.get_opponent(player))) - \
+            distance(better_place[1], game.get_player_location(player))
+
+def custom_score_h1_begin_mixed(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+
+    # TODO: finish this function!
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    available_spaces = game.get_blank_spaces()
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    if(len(available_spaces) >= (game.width * game.height) / 2):
+        available_q1 = len([x for x in available_spaces if x in player.q1])
+        available_q2 = len([x for x in available_spaces if x in player.q2])
+        available_q3 = len([x for x in available_spaces if x in player.q3])
+        available_q4 = len([x for x in available_spaces if x in player.q4])
+
+        better_place = max([(available_q1, player.b1), (available_q2, player.b2), (available_q3, player.b3), (available_q4, player.b4)])
+
+        return float(own_moves - opp_moves) + \
+            distance(better_place[1], game.get_player_location(game.get_opponent(player))) - \
+            distance(better_place[1], game.get_player_location(player))
+    else:
+        return float(own_moves - opp_moves)
+    
+def custom_score_h1_begin_distance(game, player):
+    """Calculate the heuristic value of a game state from the point of view
+    of the given player.
+
+    Note: this function should be called from within a Player instance as
+    `self.score()` -- you should not need to call this function directly.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : object
+        A player instance in the current game (i.e., an object corresponding to
+        one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+    Returns
+    -------
+    float
+        The heuristic value of the current game state to the specified player.
+    """
+
+    # TODO: finish this function!
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    available_spaces = game.get_blank_spaces()
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    if(len(available_spaces) >= (game.width * game.height) / 2):
+        available_q1 = len([x for x in available_spaces if x in player.q1])
+        available_q2 = len([x for x in available_spaces if x in player.q2])
+        available_q3 = len([x for x in available_spaces if x in player.q3])
+        available_q4 = len([x for x in available_spaces if x in player.q4])
+
+        better_place = max([(available_q1, player.b1), (available_q2, player.b2), (available_q3, player.b3), (available_q4, player.b4)])
+
+        return distance(better_place[1], game.get_player_location(game.get_opponent(player))) - \
+            distance(better_place[1], game.get_player_location(player))
+    else:
+        return float(own_moves - opp_moves)
 
 class CustomPlayer:
     """Game-playing agent that chooses a move using your evaluation function
@@ -180,7 +431,7 @@ class CustomPlayer:
             # opening move of player 1: take the center of the board
             return ( int(game.width/2), int(game.height/2))
         if(len(legal_moves) == (game.width * game.height - 1)):
-            # opening move of player 2
+            # opening move of player 2: not required to be implemented for the project submission
             return (0,0)
         if(len(legal_moves) == 0):
             # end game
